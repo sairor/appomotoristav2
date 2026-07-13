@@ -3,6 +3,7 @@
   <head>
     <script>
       (function() {
+        // 1. Error diagnostics
         window.onerror = function(msg, url, line, col, err) {
           var formatted = msg + '\nFile: ' + url + '\nLine: ' + line + ':' + col;
           alert('ERRO DE DIAGNÓSTICO:\n' + formatted);
@@ -13,6 +14,26 @@
           alert('REJEIÇÃO DE PROMISE:\n' + formatted);
           try { localStorage.setItem('last_error', formatted); } catch(_) {}
         });
+
+        // 2. Force unregister ALL service workers and clear ALL caches
+        if ('serviceWorker' in navigator && !sessionStorage.getItem('sw_cleared')) {
+          sessionStorage.setItem('sw_cleared', '1');
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            var promises = regs.map(function(r) { return r.unregister(); });
+            if (window.caches) {
+              promises.push(
+                caches.keys().then(function(names) {
+                  return Promise.all(names.map(function(n) { return caches.delete(n); }));
+                })
+              );
+            }
+            if (regs.length > 0) {
+              Promise.all(promises).then(function() {
+                location.reload();
+              });
+            }
+          });
+        }
       })();
     </script>
     <meta charset="UTF-8" />
@@ -160,50 +181,9 @@
       })();
     </script>
     <style>
-      html[data-lp="1"] #initial-loader-app { display: none; }
-      html[data-lp="0"] #initial-loader-lp { display: none; }
-      /* App loader (logo) */
-      #initial-loader-app {
-        position: fixed; inset: 0; background: #000;
-        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
-        z-index: 9999;
-        isolation: isolate;
-      }
-      #initial-loader-app img { width: 140px; height: auto; }
-      /* LP hero estatico (visivel ate React montar — entrega FCP/LCP imediato) */
-      #initial-loader-lp {
-        background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(255,193,7,0.06) 0%, transparent 70%), #000;
-        min-height: 100dvh; padding: 24px 16px 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
-        display: flex; flex-direction: column; align-items: center;
-      }
-      #initial-loader-lp .lp-nav-bar {
-        width: 100%; max-width: 1200px; padding: 14px 0;
-        display: flex; justify-content: space-between; align-items: center;
-      }
-      #initial-loader-lp .lp-nav-bar img { height: 18px; width: auto; }
-      #initial-loader-lp .lp-hero-wrap {
-        max-width: 520px; width: 100%; margin: 24px auto 0; text-align: center;
-      }
-      #initial-loader-lp h1 {
-        color: #F0F0F0; font-size: clamp(28px, 6vw, 52px); font-weight: 900;
-        line-height: 1.1; margin: 0 0 16px; letter-spacing: 0;
-      }
-      #initial-loader-lp h1 .accent { color: #FFC107; }
-      #initial-loader-lp p {
-        color: #8E8E93; font-size: clamp(16px, 2.5vw, 20px);
-        line-height: 1.6; margin: 0 0 24px;
-      }
-      #initial-loader-lp .cta {
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 14px 32px; border-radius: 14px; text-decoration: none;
-        background: linear-gradient(145deg, #FFD54F, #FFC107);
-        color: #000; font-size: 16px; font-weight: 800;
-        box-shadow: 0 4px 20px rgba(255,193,7,0.3);
-      }
-      #initial-loader-lp .social {
-        margin-top: 32px; font-size: 13px; color: #8E8E93; font-weight: 600;
-      }
+      /* BOTH loaders are permanently hidden — dashboard loads directly */
+      #initial-loader-app { display: none !important; }
+      #initial-loader-lp { display: none !important; }
     </style>
     <div id="root" class="lp-active"><link rel="preload" as="image" href="/img/logo.png" fetchPriority="high"/><link rel="preload" as="image" href="/img/uber.webp"/><link rel="preload" as="image" href="/img/99.webp"/><link rel="preload" as="image" href="/img/ifood.webp"/><link rel="preload" as="image" href="/img/rappi.webp"/><div style="background:radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255,193,7,0.03) 0%, transparent 60%), #000000;min-height:100dvh;overflow-x:hidden;font-family:-apple-system, BlinkMacSystemFont, &#x27;Segoe UI&#x27;, Roboto, sans-serif"><style>
         html { scroll-behavior: smooth; }
