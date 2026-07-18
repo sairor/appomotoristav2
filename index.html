@@ -136,6 +136,16 @@
         transition: none !important;
       }
     </style>
+
+    <script>
+      // Force app mode to skip landing page (bypasses router logic in index-BPCPb1Jt.js)
+      sessionStorage.setItem('dev_force_app', '1');
+    </script>
+
+    <script>
+      // Force onboarding complete
+      localStorage.setItem('Direção Certa_onboarding_done', '1');
+    </script>
 </head>
   <body data-prerender="1" style="background:#000000">
     <!-- Meta Pixel noscript fallback: dispara PageView pra usuarios sem JS.
